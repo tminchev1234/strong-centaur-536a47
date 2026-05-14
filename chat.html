@@ -795,7 +795,7 @@ async function sendMessage() {
       }
     } : {};
 
-    const resp = await fetch(`${API_BASE}/api/ask-alex/chat?uid=${encodeURIComponent(_userId || '')}`, {
+    const resp = await fetch(`${API_BASE}/api/ask-alex/stream?uid=${encodeURIComponent(_userId || '')}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -823,7 +823,7 @@ async function sendMessage() {
         if (!line.startsWith('data: ')) continue;
         let evt; try { evt = JSON.parse(line.slice(6)); } catch { continue; }
 
-        if (evt.type === 'token' && evt.text) {
+        if (evt.type === 'delta' && evt.text) {
           if (!gndGone) { document.getElementById('gnd-' + msgId)?.remove(); gndGone = true; }
           full += evt.text;
           bubble.innerHTML = _md(full) + '<span class="cursor"></span>';
