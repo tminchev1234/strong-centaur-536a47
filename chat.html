@@ -4,11 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>TradeAware — AI Trading Coach</title>
-  <meta name="description" content="Upload your broker statement and talk to your personal AI trading coach. Discover the behavioral patterns costing you money." />
+  <meta name="description" content="Upload your broker statement and talk to your personal AI trading coach." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <!-- Clerk Auth — same instance as Alex Finance -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script
     data-clerk-publishable-key="pk_test_aG9uZXN0LWNhdHRsZS0yMy5jbGVyay5hY2NvdW50cy5kZXYk"
     src="https://honest-cattle-23.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
@@ -16,644 +15,211 @@
   ></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #080b10;
-      --bg-2:      #0d1117;
-      --bg-3:      #111820;
-      --border:    rgba(255,255,255,0.07);
-      --border-2:  rgba(255,255,255,0.04);
-      --text:      #dde1ed;
-      --muted:     #7b8699;
-      --muted-2:   #404b5c;
-      --gold:      #c9a96e;
-      --gold-2:    #e8c88a;
-      --gold-bg:   rgba(201,169,110,0.08);
-      --gold-bdr:  rgba(201,169,110,0.25);
-      --green:     #34d399;
-      --green-bg:  rgba(52,211,153,0.08);
-      --red:       #f87171;
-      --red-bg:    rgba(248,113,113,0.08);
-      --font:      'Inter', -apple-system, sans-serif;
+      --bg:       #080b10; --bg-2: #0d1117; --bg-3: #111820;
+      --border:   rgba(255,255,255,0.07); --border-2: rgba(255,255,255,0.04);
+      --text:     #dde1ed; --muted: #7b8699; --muted-2: #404b5c;
+      --gold:     #c9a96e; --gold-2: #e8c88a;
+      --gold-bg:  rgba(201,169,110,0.08); --gold-bdr: rgba(201,169,110,0.25);
+      --green:    #34d399; --green-bg: rgba(52,211,153,0.08); --green-bdr: rgba(52,211,153,0.2);
+      --red:      #f87171; --red-bg: rgba(248,113,113,0.08); --red-bdr: rgba(248,113,113,0.2);
+      --blue:     #60a5fa; --font: 'Inter', -apple-system, sans-serif;
+      --mono:     'JetBrains Mono', monospace;
     }
-
     html, body { height: 100%; overflow: hidden; }
+    body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; }
+    a { color:inherit; text-decoration:none; }
+    button { font-family:var(--font); cursor:pointer; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 15px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      display: flex;
-      flex-direction: column;
-    }
+    /* ── NAV ── */
+    nav { flex-shrink:0; background:rgba(8,11,16,0.92); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); padding:0 20px; z-index:100; }
+    .nav-inner { height:52px; display:flex; align-items:center; justify-content:space-between; }
+    .nav-left { display:flex; align-items:center; gap:12px; }
+    .nav-back { font-size:12px; color:var(--muted-2); transition:color .15s; }
+    .nav-back:hover { color:var(--muted); }
+    .logo { font-size:17px; font-weight:800; letter-spacing:-.3px; }
+    .logo span { color:var(--gold); }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .nav-email { font-size:12px; color:var(--muted); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .nav-btn { background:transparent; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:500; padding:6px 14px; border-radius:7px; transition:border-color .15s,color .15s; }
+    .nav-btn:hover { border-color:var(--muted-2); color:var(--text); }
+    .nav-btn.gold { background:var(--gold); border-color:var(--gold); color:#000; font-weight:600; }
+    .nav-btn.gold:hover { opacity:.85; }
 
-    a { color: inherit; text-decoration: none; }
-    button { font-family: var(--font); cursor: pointer; }
+    /* ── STATE WRAPPERS ── */
+    .state-wrap { flex:1; overflow:hidden; display:flex; flex-direction:column; }
 
-    /* ── NAV ──────────────────────────────────────────────────────────────── */
-    nav {
-      flex-shrink: 0;
-      background: rgba(8,11,16,0.9);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 20px;
-      z-index: 100;
-    }
-    .nav-inner {
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .logo {
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -.3px;
-    }
-    .logo span { color: var(--gold); }
-    .logo a { display: flex; align-items: center; gap: 8px; }
-    .logo-back {
-      font-size: 12px;
-      color: var(--muted-2);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: color .15s;
-    }
-    .logo-back:hover { color: var(--muted); }
-    .nav-right { display: flex; align-items: center; gap: 10px; }
-    .nav-email {
-      font-size: 12px;
-      color: var(--muted);
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .nav-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 7px;
-      transition: border-color .15s, color .15s;
-    }
-    .nav-btn:hover { border-color: var(--muted-2); color: var(--text); }
-    .nav-btn.gold {
-      background: var(--gold);
-      border-color: var(--gold);
-      color: #000;
-      font-weight: 600;
-    }
-    .nav-btn.gold:hover { opacity: .85; }
+    /* ── AUTH ── */
+    #state-auth { flex:1; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .auth-card { background:var(--bg-2); border:1px solid var(--border); border-radius:20px; padding:48px 44px; max-width:420px; width:100%; text-align:center; }
+    .auth-logo { font-size:26px; font-weight:800; letter-spacing:-.5px; margin-bottom:8px; }
+    .auth-logo span { color:var(--gold); }
+    .auth-tagline { font-size:14px; color:var(--muted); margin-bottom:36px; line-height:1.55; }
+    .btn-auth { width:100%; padding:14px; border-radius:10px; font-size:15px; font-weight:700; border:none; cursor:pointer; background:var(--gold); color:#000; margin-bottom:10px; transition:opacity .15s,transform .15s; }
+    .btn-auth:hover { opacity:.88; transform:translateY(-1px); }
+    .btn-auth.outline { background:transparent; border:1px solid var(--border); color:var(--muted); font-weight:500; }
+    .btn-auth.outline:hover { border-color:var(--muted-2); color:var(--text); }
+    .auth-note { font-size:12px; color:var(--muted-2); margin-top:16px; }
 
-    /* ── STATES WRAPPER ───────────────────────────────────────────────────── */
-    .state-wrap {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+    /* ── UPLOAD ── */
+    #state-upload { flex:1; display:none; align-items:center; justify-content:center; padding:24px; overflow-y:auto; }
+    .upload-card { background:var(--bg-2); border:1px solid var(--border); border-radius:20px; padding:44px; max-width:560px; width:100%; }
+    .upload-card h2 { font-size:24px; font-weight:800; letter-spacing:-.5px; margin-bottom:8px; }
+    .upload-card > p { font-size:14px; color:var(--muted); margin-bottom:28px; }
+    .drop-zone { border:2px dashed var(--border); border-radius:14px; padding:36px 24px; text-align:center; cursor:pointer; transition:border-color .2s,background .2s; background:var(--bg-3); margin-bottom:16px; }
+    .drop-zone:hover, .drop-zone.dragging { border-color:var(--gold-bdr); background:var(--gold-bg); }
+    .drop-icon { font-size:30px; margin-bottom:10px; }
+    .drop-text { font-size:15px; font-weight:500; margin-bottom:4px; }
+    .drop-sub { font-size:13px; color:var(--muted); margin-bottom:14px; }
+    .drop-browse { background:var(--gold); color:#000; font-size:13px; font-weight:700; padding:9px 20px; border-radius:8px; border:none; cursor:pointer; }
+    .drop-note { font-size:11px; color:var(--muted-2); margin-top:12px; }
+    #file-input { display:none; }
+    .drop-selected { display:none; align-items:center; gap:10px; background:var(--green-bg); border:1px solid var(--green-bdr); border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:var(--green); }
+    .broker-row { display:flex; gap:10px; align-items:center; margin-bottom:16px; }
+    .broker-label { font-size:13px; color:var(--muted); white-space:nowrap; }
+    .broker-select { flex:1; background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-size:13px; color:var(--text); font-family:var(--font); outline:none; transition:border-color .15s; }
+    .broker-select:focus { border-color:var(--gold-bdr); }
+    .btn-upload-submit { width:100%; padding:14px; border-radius:10px; font-size:15px; font-weight:700; border:none; background:var(--gold); color:#000; cursor:pointer; transition:opacity .15s; }
+    .btn-upload-submit:hover { opacity:.88; }
+    .btn-upload-submit:disabled { opacity:.4; cursor:not-allowed; }
+    .upload-err { display:none; background:var(--red-bg); border:1px solid var(--red-bdr); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--red); margin-top:10px; }
 
-    /* ── AUTH STATE ───────────────────────────────────────────────────────── */
-    #state-auth {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    .auth-card {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 48px 44px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-    }
-    .auth-logo {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -.5px;
-      margin-bottom: 8px;
-    }
-    .auth-logo span { color: var(--gold); }
-    .auth-tagline {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 36px;
-      line-height: 1.55;
-    }
-    .auth-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 24px 0;
-      color: var(--muted-2);
-      font-size: 12px;
-    }
-    .auth-divider::before, .auth-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-    .btn-auth {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      background: var(--gold);
-      color: #000;
-      margin-bottom: 10px;
-      transition: opacity .15s, transform .15s;
-    }
-    .btn-auth:hover { opacity: .88; transform: translateY(-1px); }
-    .btn-auth.outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-weight: 500;
-    }
-    .btn-auth.outline:hover { border-color: var(--muted-2); color: var(--text); }
-    .auth-note {
-      font-size: 12px;
-      color: var(--muted-2);
-      margin-top: 16px;
-      line-height: 1.5;
-    }
+    /* ── ANALYZING ── */
+    #state-analyzing { flex:1; display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .analyzing-text { font-size:15px; color:var(--muted); }
+    .analyzing-sub { font-size:12px; color:var(--muted-2); }
 
-    /* ── UPLOAD STATE ─────────────────────────────────────────────────────── */
-    #state-upload {
-      flex: 1;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      overflow-y: auto;
-    }
-    .upload-card {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 44px;
-      max-width: 560px;
-      width: 100%;
-    }
-    .upload-card-header { margin-bottom: 32px; }
-    .upload-card-header h2 {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -.5px;
-      margin-bottom: 8px;
-    }
-    .upload-card-header p { font-size: 14px; color: var(--muted); }
-    .drop-zone {
-      border: 2px dashed var(--border);
-      border-radius: 14px;
-      padding: 40px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .2s, background .2s;
-      background: var(--bg-3);
-      margin-bottom: 20px;
-      position: relative;
-    }
-    .drop-zone:hover, .drop-zone.dragging {
-      border-color: var(--gold-bdr);
-      background: var(--gold-bg);
-    }
-    .drop-icon { font-size: 32px; margin-bottom: 12px; }
-    .drop-text { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
-    .drop-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-    .drop-browse {
-      background: var(--gold);
-      color: #000;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 9px 20px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      transition: opacity .15s;
-    }
-    .drop-browse:hover { opacity: .85; }
-    .drop-note { font-size: 11px; color: var(--muted-2); margin-top: 14px; }
-    #file-input { display: none; }
-    .drop-selected {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      background: var(--green-bg);
-      border: 1px solid rgba(52,211,153,0.2);
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      font-size: 14px;
-      color: var(--green);
-    }
-    .broker-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      align-items: center;
-    }
-    .broker-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
-    .broker-select {
-      flex: 1;
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 12px;
-      font-size: 13px;
-      color: var(--text);
-      font-family: var(--font);
-      outline: none;
-      transition: border-color .15s;
-    }
-    .broker-select:focus { border-color: var(--gold-bdr); }
-    .btn-upload-submit {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      border: none;
-      background: var(--gold);
-      color: #000;
-      cursor: pointer;
-      transition: opacity .15s;
-    }
-    .btn-upload-submit:hover { opacity: .88; }
-    .btn-upload-submit:disabled { opacity: .4; cursor: not-allowed; }
-    .upload-err {
-      display: none;
-      background: var(--red-bg);
-      border: 1px solid rgba(248,113,113,0.2);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: var(--red);
-      margin-top: 12px;
-    }
+    /* ── CHAT STATE ── */
+    #state-chat { flex:1; display:none; flex-direction:column; overflow:hidden; min-height:0; }
+    .chat-body { flex:1; display:flex; overflow:hidden; min-height:0; }
 
-    /* ── ANALYZING STATE ──────────────────────────────────────────────────── */
-    #state-analyzing {
-      flex: 1;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .analyzing-text { font-size: 15px; color: var(--muted); }
-    .analyzing-sub  { font-size: 13px; color: var(--muted-2); }
+    /* ── SIDEBAR ── */
+    .sidebar { width:300px; flex-shrink:0; border-right:1px solid var(--border); background:var(--bg-2); display:flex; flex-direction:column; overflow:hidden; }
+    .sidebar-head { padding:14px 16px 10px; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
+    .sidebar-head h3 { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); }
+    .sidebar-new { background:transparent; border:1px solid var(--border); color:var(--muted-2); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; transition:all .15s; }
+    .sidebar-new:hover { border-color:var(--gold-bdr); color:var(--gold); }
+    .sidebar-scroll { flex:1; overflow-y:auto; padding:12px; }
+    .sidebar-scroll::-webkit-scrollbar { width:3px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
-    /* ── CHAT LAYOUT ──────────────────────────────────────────────────────── */
-    #state-chat {
-      flex: 1;
-      display: none;
-      overflow: hidden;
-    }
-    .chat-layout {
-      display: flex;
-      height: 100%;
-      overflow: hidden;
-    }
+    /* Sidebar sections */
+    .s-section { margin-bottom:14px; }
+    .s-section-title { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted-2); margin-bottom:8px; padding-left:2px; }
+    .s-period { font-size:11px; color:var(--muted-2); background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:7px 10px; text-align:center; margin-bottom:12px; }
 
-    /* ── SIDEBAR ──────────────────────────────────────────────────────────── */
-    .sidebar {
-      width: 280px;
-      flex-shrink: 0;
-      border-right: 1px solid var(--border);
-      background: var(--bg-2);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .sidebar-header {
-      padding: 16px 16px 12px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .sidebar-header h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-    .sidebar-new-btn {
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 6px;
-      transition: border-color .15s, color .15s;
-    }
-    .sidebar-new-btn:hover { border-color: var(--gold-bdr); color: var(--gold); }
-    .sidebar-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-    .sidebar-body::-webkit-scrollbar { width: 4px; }
-    .sidebar-body::-webkit-scrollbar-track { background: transparent; }
-    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    /* Metric rows */
+    .s-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .s-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; }
+    .s-metric { background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:10px 10px 8px; }
+    .s-metric .val { font-size:18px; font-weight:700; letter-spacing:-.5px; line-height:1; }
+    .s-metric .lbl { font-size:9px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.4px; margin-top:4px; }
+    .s-metric .sub { font-size:10px; color:var(--muted); margin-top:2px; }
+    .val.red { color:var(--red); } .val.green { color:var(--green); } .val.gold { color:var(--gold); } .val.white { color:var(--text); }
 
-    /* Stats blocks */
-    .stat-block {
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 10px;
-    }
-    .stat-label { font-size: 10px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
-    .stat-value { font-size: 22px; font-weight: 700; letter-spacing: -1px; }
-    .stat-value.red    { color: var(--red); }
-    .stat-value.green  { color: var(--green); }
-    .stat-value.gold   { color: var(--gold); }
-    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    /* Behavior chips */
+    .b-chip { border-radius:8px; padding:9px 11px; margin-bottom:6px; display:flex; gap:9px; align-items:flex-start; }
+    .b-chip.warn { background:rgba(248,113,113,0.07); border:1px solid var(--red-bdr); }
+    .b-chip.good { background:var(--green-bg); border:1px solid var(--green-bdr); }
+    .b-chip.info { background:var(--gold-bg); border:1px solid var(--gold-bdr); }
+    .b-chip-icon { font-size:14px; flex-shrink:0; margin-top:1px; }
+    .b-chip-title { font-size:11px; font-weight:600; margin-bottom:2px; }
+    .b-chip.warn .b-chip-title { color:var(--red); }
+    .b-chip.good .b-chip-title { color:var(--green); }
+    .b-chip.info .b-chip-title { color:var(--gold); }
+    .b-chip-desc { font-size:10px; color:var(--muted); line-height:1.45; }
 
-    .stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
+    /* Ticker rows */
+    .t-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border-2); font-size:12px; }
+    .t-row:last-child { border-bottom:none; }
+    .t-row .sym { font-weight:600; font-family:var(--mono); }
+    .t-row .pnl { font-weight:600; }
+    .t-row .pnl.red { color:var(--red); }
+    .t-row .pnl.green { color:var(--green); }
 
-    .insight-chip {
-      background: var(--gold-bg);
-      border: 1px solid var(--gold-bdr);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-    }
-    .insight-chip-title { font-size: 12px; font-weight: 600; color: var(--gold); margin-bottom: 3px; }
-    .insight-chip-desc  { font-size: 11px; color: var(--muted); line-height: 1.45; }
+    /* No data */
+    .no-data { text-align:center; padding:24px 8px; }
+    .no-data p { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:14px; }
+    .no-data button { background:var(--gold); color:#000; font-size:12px; font-weight:700; padding:9px 16px; border-radius:8px; border:none; cursor:pointer; }
 
-    .sidebar-period { font-size: 11px; color: var(--muted-2); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    /* ── CHAT MAIN ── */
+    .chat-main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+    .chat-header { flex-shrink:0; padding:12px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .alex-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(52,211,153,0.15); flex-shrink:0; }
+    .chat-header-info .title { font-size:14px; font-weight:600; }
+    .chat-header-info .sub { font-size:11px; color:var(--muted); }
+    .chat-header-right { margin-left:auto; }
 
-    .no-data-prompt {
-      text-align: center;
-      padding: 20px 8px;
-    }
-    .no-data-prompt p { font-size: 13px; color: var(--muted); line-height: 1.55; }
-    .no-data-prompt .btn-upload-link {
-      background: var(--gold);
-      color: #000;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 9px 16px;
-      border-radius: 8px;
-      border: none;
-      margin-top: 14px;
-      cursor: pointer;
-      display: inline-block;
-    }
-
-    /* ── CHAT MAIN ────────────────────────────────────────────────────────── */
-    .chat-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .chat-header {
-      flex-shrink: 0;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .alex-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 0 3px rgba(52,211,153,0.15);
-      flex-shrink: 0;
-    }
-    .chat-header-title { font-size: 14px; font-weight: 600; }
-    .chat-header-sub { font-size: 12px; color: var(--muted); }
-    .chat-header-right { margin-left: auto; font-size: 11px; color: var(--muted-2); }
-
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .messages::-webkit-scrollbar { width: 4px; }
-    .messages::-webkit-scrollbar-track { background: transparent; }
-    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .messages { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:14px; }
+    .messages::-webkit-scrollbar { width:3px; }
+    .messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
     /* Message rows */
-    .msg {
-      display: flex;
-      gap: 10px;
-      max-width: 780px;
-      width: 100%;
-      align-self: flex-start;
-    }
-    .msg.user {
-      align-self: flex-end;
-      flex-direction: row-reverse;
-    }
-    .msg-avatar {
-      width: 30px; height: 30px; border-radius: 50%;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700;
-    }
-    .msg-avatar.alex-av { background: var(--gold-bg); border: 1px solid var(--gold-bdr); color: var(--gold); }
-    .msg-avatar.user-av { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--muted); }
-    .msg-bubble {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 13px 16px;
-      font-size: 14px;
-      line-height: 1.6;
-      max-width: 640px;
-    }
-    .msg.user .msg-bubble {
-      background: var(--bg-3);
-      border-color: rgba(255,255,255,0.06);
-    }
-    .msg-bubble p { margin-bottom: 8px; }
-    .msg-bubble p:last-child { margin-bottom: 0; }
-    .msg-bubble strong { color: var(--text); font-weight: 600; }
-    .msg-bubble em { color: var(--gold); font-style: normal; font-weight: 500; }
-    .msg-bubble code {
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--gold);
-    }
+    .msg { display:flex; gap:10px; max-width:820px; align-self:flex-start; width:100%; }
+    .msg.user { align-self:flex-end; flex-direction:row-reverse; max-width:680px; }
+    .msg-av { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; margin-top:2px; }
+    .msg-av.alex { background:var(--gold-bg); border:1px solid var(--gold-bdr); color:var(--gold); }
+    .msg-av.user-av { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--muted); }
+    .msg-content { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .msg-bubble { background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:12px 15px; font-size:14px; line-height:1.65; }
+    .msg.user .msg-bubble { background:var(--bg-3); border-color:rgba(255,255,255,0.05); }
+    .msg-bubble p { margin-bottom:8px; }
+    .msg-bubble p:last-child { margin-bottom:0; }
+    .msg-bubble strong { color:var(--text); font-weight:600; }
+    .msg-bubble em { color:var(--gold); font-style:normal; }
+    .msg-bubble code { background:var(--bg-3); border:1px solid var(--border); border-radius:4px; padding:1px 5px; font-size:12px; font-family:var(--mono); color:var(--gold); }
 
-    /* Streaming cursor */
-    .cursor {
-      display: inline-block;
-      width: 2px; height: 14px;
-      background: var(--gold);
-      margin-left: 2px;
-      vertical-align: text-bottom;
-      animation: blink .8s step-end infinite;
-    }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    /* Feedback row */
+    .fb-row { display:flex; align-items:center; gap:6px; padding-left:2px; }
+    .fb-btn { background:transparent; border:1px solid var(--border); border-radius:6px; padding:3px 8px; font-size:13px; color:var(--muted-2); transition:all .15s; line-height:1; }
+    .fb-btn:hover { border-color:var(--gold-bdr); color:var(--gold); }
+    .fb-btn.pos.active { background:var(--green-bg); border-color:var(--green-bdr); color:var(--green); }
+    .fb-btn.neg.active { background:var(--red-bg); border-color:var(--red-bdr); color:var(--red); }
+    .fb-btn.inactive { opacity:.3; pointer-events:none; }
+    .fb-label { font-size:11px; color:var(--muted-2); }
 
-    /* Grounding indicator */
-    .msg-grounding {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--muted-2);
-      padding: 8px 0 0 40px;
-      animation: fadeIn .3s ease;
-    }
-    .gnd-spinner {
-      width: 12px; height: 12px;
-      border: 1.5px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    /* Grounding */
+    .msg-grounding { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted-2); padding:6px 0 2px 38px; }
+    .gnd-spinner { width:11px; height:11px; border:1.5px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .7s linear infinite; }
 
-    /* Welcome message */
-    .welcome {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      padding: 40px 20px;
-      text-align: center;
-      gap: 12px;
-      color: var(--muted);
-    }
-    .welcome-icon { font-size: 36px; margin-bottom: 8px; }
-    .welcome h3 { font-size: 18px; font-weight: 700; color: var(--text); }
-    .welcome p { font-size: 14px; max-width: 420px; line-height: 1.6; }
-    .welcome-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 8px;
-    }
-    .welcome-chip {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: border-color .15s, color .15s;
-    }
-    .welcome-chip:hover { border-color: var(--gold-bdr); color: var(--gold); }
+    /* Cursor */
+    .cursor { display:inline-block; width:2px; height:14px; background:var(--gold); margin-left:2px; vertical-align:text-bottom; animation:blink .8s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-    /* ── INPUT AREA ───────────────────────────────────────────────────────── */
-    .input-area {
-      flex-shrink: 0;
-      padding: 14px 20px 18px;
-      border-top: 1px solid var(--border);
-      background: var(--bg-2);
-    }
-    .input-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      transition: border-color .15s;
-    }
-    .input-row:focus-within { border-color: var(--gold-bdr); }
-    #msg-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 14px;
-      line-height: 1.5;
-      resize: none;
-      min-height: 22px;
-      max-height: 140px;
-      overflow-y: auto;
-    }
-    #msg-input::placeholder { color: var(--muted-2); }
-    #send-btn {
-      background: var(--gold);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      width: 34px; height: 34px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-      transition: opacity .15s;
-    }
-    #send-btn:hover { opacity: .85; }
-    #send-btn:disabled { opacity: .3; cursor: not-allowed; }
-    .input-hint { font-size: 11px; color: var(--muted-2); margin-top: 7px; text-align: center; }
+    /* Welcome */
+    .welcome { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:40px 20px; text-align:center; gap:10px; }
+    .welcome-icon { font-size:34px; margin-bottom:6px; }
+    .welcome h3 { font-size:18px; font-weight:700; color:var(--text); }
+    .welcome p { font-size:14px; color:var(--muted); max-width:440px; line-height:1.6; }
+    .welcome-chips { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-top:6px; }
+    .welcome-chip { background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; transition:border-color .15s,color .15s; text-align:left; }
+    .welcome-chip:hover { border-color:var(--gold-bdr); color:var(--gold); }
 
-    /* ── SIDEBAR TOGGLE (mobile) ──────────────────────────────────────────── */
-    .sidebar-toggle {
-      display: none;
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 7px;
-    }
+    /* ── FULL-WIDTH INPUT ── */
+    .input-area { flex-shrink:0; padding:12px 16px 14px; border-top:1px solid var(--border); background:rgba(8,11,16,0.95); }
+    .input-row { display:flex; gap:10px; align-items:flex-end; background:var(--bg-3); border:1px solid var(--border); border-radius:12px; padding:10px 12px; transition:border-color .15s; }
+    .input-row:focus-within { border-color:var(--gold-bdr); }
+    #msg-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:var(--font); font-size:14px; line-height:1.5; resize:none; min-height:22px; max-height:120px; overflow-y:auto; }
+    #msg-input::placeholder { color:var(--muted-2); }
+    #send-btn { background:var(--gold); color:#000; border:none; border-radius:8px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; transition:opacity .15s; }
+    #send-btn:hover { opacity:.85; }
+    #send-btn:disabled { opacity:.3; cursor:not-allowed; }
+    .input-hint { font-size:11px; color:var(--muted-2); margin-top:5px; padding-left:4px; }
 
-    /* ── RESPONSIVE ───────────────────────────────────────────────────────── */
-    @media (max-width: 768px) {
-      html, body { overflow: auto; }
-      .state-wrap { overflow: auto; }
-      #state-chat { overflow: auto; }
-      .chat-layout { flex-direction: column; height: auto; min-height: calc(100dvh - 52px); }
-      .sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        max-height: 300px;
-      }
-      .sidebar-body { max-height: 240px; }
-      .messages { max-height: 400px; }
-      .sidebar-toggle { display: block; }
-      .upload-card { padding: 28px 20px; }
-      .auth-card { padding: 36px 24px; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .msg { animation:fadeIn .25s ease; }
+
+    /* ── MOBILE ── */
+    @media (max-width:768px) {
+      html, body { overflow:auto; }
+      .state-wrap { overflow:auto; }
+      #state-chat { overflow:auto; min-height:calc(100dvh - 52px); }
+      .chat-body { flex-direction:column; }
+      .sidebar { width:100%; max-height:260px; border-right:none; border-bottom:1px solid var(--border); }
+      .upload-card { padding:28px 20px; }
+      .auth-card { padding:36px 24px; }
     }
   </style>
 </head>
@@ -662,9 +228,9 @@
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <div class="logo">
-      <a href="/" class="logo-back">← </a>
-      Trade<span>Aware</span>
+    <div class="nav-left">
+      <a href="/" class="nav-back">← Back</a>
+      <div class="logo">Trade<span>Aware</span></div>
     </div>
     <div class="nav-right" id="nav-right">
       <button class="nav-btn gold" id="nav-signin-btn" onclick="doSignIn()" style="display:none">Sign In</button>
@@ -676,207 +242,176 @@
 
 <div class="state-wrap" id="state-wrap">
 
-  <!-- STATE: AUTH -->
-  <div id="state-auth" style="display:flex">
-    <div class="auth-card">
-      <div class="auth-logo">Trade<span>Aware</span></div>
-      <p class="auth-tagline">Sign in to upload your broker statement and talk to your personal AI trading coach.</p>
-      <button class="btn-auth" onclick="doSignIn()">Sign In / Create Account →</button>
-      <button class="btn-auth outline" onclick="doSignUp()">Create free account</button>
-      <p class="auth-note">Free to start · No credit card · Early access</p>
+<!-- ── AUTH ── -->
+<div id="state-auth" style="display:flex">
+  <div class="auth-card">
+    <div class="auth-logo">Trade<span>Aware</span></div>
+    <p class="auth-tagline">Sign in to upload your broker statement and get your full behavioral trading analysis.</p>
+    <button class="btn-auth" onclick="doSignIn()">Sign In / Create Account →</button>
+    <button class="btn-auth outline" onclick="doSignUp()">Create free account</button>
+    <p class="auth-note">Free · No credit card · Early access</p>
+  </div>
+</div>
+
+<!-- ── UPLOAD ── -->
+<div id="state-upload" style="display:none; align-items:center; justify-content:center; flex:1; padding:24px; overflow-y:auto">
+  <div class="upload-card">
+    <h2>Upload your broker statement</h2>
+    <p>We'll parse every trade and build your behavioral profile.</p>
+
+    <div class="drop-zone" id="drop-zone"
+         onclick="document.getElementById('file-input').click()"
+         ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
+      <div class="drop-icon">📤</div>
+      <div class="drop-text">Drop your CSV here</div>
+      <div class="drop-sub">or click to browse</div>
+      <button class="drop-browse" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse files</button>
+      <div class="drop-note">IBKR · Trading 212 · Revolut · Degiro · Any CSV</div>
     </div>
-  </div>
+    <input type="file" id="file-input" accept=".csv" onchange="handleFileSelect(event)" />
 
-  <!-- STATE: UPLOAD -->
-  <div id="state-upload" style="display:none; align-items:center; justify-content:center; padding:24px; overflow-y:auto; flex:1">
-    <div class="upload-card">
-      <div class="upload-card-header">
-        <h2>Upload your broker statement</h2>
-        <p>We'll parse every trade and build your behavioral profile.</p>
-      </div>
-
-      <!-- Drop zone -->
-      <div class="drop-zone" id="drop-zone"
-           onclick="document.getElementById('file-input').click()"
-           ondragover="handleDragOver(event)"
-           ondragleave="handleDragLeave(event)"
-           ondrop="handleDrop(event)">
-        <div class="drop-icon">📤</div>
-        <div class="drop-text">Drop your CSV here</div>
-        <div class="drop-sub">or click to browse</div>
-        <button class="drop-browse" onclick="event.stopPropagation(); document.getElementById('file-input').click()">Browse files</button>
-        <div class="drop-note">Supports: IBKR · Trading 212 · Revolut · Degiro · Any CSV</div>
-      </div>
-      <input type="file" id="file-input" accept=".csv" onchange="handleFileSelect(event)" />
-
-      <!-- Selected file indicator -->
-      <div class="drop-selected" id="drop-selected">
-        <span>✅</span>
-        <span id="selected-filename"></span>
-      </div>
-
-      <!-- Broker select -->
-      <div class="broker-row">
-        <span class="broker-label">Broker</span>
-        <select id="broker-select" class="broker-select">
-          <option value="auto">Auto-detect (recommended)</option>
-          <option value="ibkr_activity">Interactive Brokers — Activity Statement</option>
-          <option value="ibkr">Interactive Brokers — Flex Query</option>
-          <option value="t212">Trading 212</option>
-          <option value="revolut">Revolut</option>
-          <option value="degiro">Degiro</option>
-          <option value="generic">Generic CSV</option>
-        </select>
-      </div>
-
-      <button class="btn-upload-submit" id="upload-submit-btn" onclick="doUpload()" disabled>
-        Analyze My Trades →
-      </button>
-      <div class="upload-err" id="upload-err"></div>
+    <div class="drop-selected" id="drop-selected">
+      <span>✅</span><span id="selected-filename"></span>
     </div>
-  </div>
 
-  <!-- STATE: ANALYZING -->
-  <div id="state-analyzing" style="display:none; align-items:center; justify-content:center; flex-direction:column; gap:20px; flex:1">
-    <div class="spinner"></div>
-    <div class="analyzing-text">Analyzing your trades…</div>
-    <div class="analyzing-sub">Detecting patterns · Calculating metrics · Building your profile</div>
-  </div>
-
-  <!-- STATE: CHAT -->
-  <div id="state-chat" style="display:none; flex:1; overflow:hidden">
-    <div class="chat-layout">
-
-      <!-- Sidebar: behavioral stats -->
-      <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <h3>Your Profile</h3>
-          <button class="sidebar-new-btn" onclick="showUpload()">+ New file</button>
-        </div>
-        <div class="sidebar-body" id="stats-panel">
-          <!-- Populated by renderStats() -->
-          <div class="no-data-prompt" id="no-data-prompt">
-            <p>Upload your broker statement to see your behavioral profile here.</p>
-            <button class="btn-upload-link" onclick="showUpload()">Upload CSV</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chat panel -->
-      <div class="chat-main">
-        <div class="chat-header">
-          <div class="alex-dot"></div>
-          <div>
-            <div class="chat-header-title">Alex · AI Trading Coach</div>
-            <div class="chat-header-sub">Powered by TradeAware</div>
-          </div>
-          <div class="chat-header-right" id="quota-display"></div>
-        </div>
-
-        <div class="messages" id="messages">
-          <!-- Welcome screen shown when no messages -->
-          <div class="welcome" id="welcome-screen">
-            <div class="welcome-icon">🧠</div>
-            <h3>Ask Alex anything about your trading</h3>
-            <p>Alex knows your full trade history. Ask about patterns, mistakes, specific stocks, or what to do differently.</p>
-            <div class="welcome-chips" id="welcome-chips">
-              <div class="welcome-chip" onclick="askChip(this)">What's my biggest weakness?</div>
-              <div class="welcome-chip" onclick="askChip(this)">Why did I lose so much on PYPL?</div>
-              <div class="welcome-chip" onclick="askChip(this)">Am I improving over time?</div>
-              <div class="welcome-chip" onclick="askChip(this)">What should I fix first?</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-area">
-          <div class="input-row">
-            <textarea
-              id="msg-input"
-              placeholder="Ask Alex about your trading…"
-              rows="1"
-              onkeydown="handleKey(event)"
-              oninput="autoResize(this)"
-            ></textarea>
-            <button id="send-btn" onclick="sendMessage()" disabled title="Send">➤</button>
-          </div>
-          <div class="input-hint">Enter to send · Shift+Enter for new line</div>
-        </div>
-      </div>
-
+    <div class="broker-row">
+      <span class="broker-label">Broker</span>
+      <select id="broker-select" class="broker-select">
+        <option value="auto">Auto-detect (recommended)</option>
+        <option value="ibkr_activity">Interactive Brokers — Activity Statement</option>
+        <option value="ibkr">Interactive Brokers — Flex Query</option>
+        <option value="t212">Trading 212</option>
+        <option value="revolut">Revolut</option>
+        <option value="degiro">Degiro</option>
+        <option value="generic">Generic CSV</option>
+      </select>
     </div>
+
+    <button class="btn-upload-submit" id="upload-submit-btn" onclick="doUpload()" disabled>
+      Analyze My Trades →
+    </button>
+    <div class="upload-err" id="upload-err"></div>
   </div>
+</div>
+
+<!-- ── ANALYZING ── -->
+<div id="state-analyzing" style="display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px; flex:1">
+  <div class="spinner"></div>
+  <div class="analyzing-text">Analyzing your trades…</div>
+  <div class="analyzing-sub">Detecting patterns · Calculating metrics · Building your profile</div>
+</div>
+
+<!-- ── CHAT ── -->
+<div id="state-chat" style="display:none">
+  <div class="chat-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-head">
+        <h3>Your Profile</h3>
+        <button class="sidebar-new" onclick="showUpload()">+ New file</button>
+      </div>
+      <div class="sidebar-scroll" id="stats-panel">
+        <div class="no-data" id="no-data-prompt">
+          <p>Upload your broker statement to see your full behavioral profile.</p>
+          <button onclick="showUpload()">Upload CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT MAIN -->
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="alex-dot"></div>
+        <div class="chat-header-info">
+          <div class="title">Alex — AI Trading Coach</div>
+          <div class="sub">Knows your full trade history · Powered by Claude</div>
+        </div>
+        <div class="chat-header-right" id="quota-display"></div>
+      </div>
+      <div class="messages" id="messages">
+        <div class="welcome" id="welcome-screen">
+          <div class="welcome-icon">🧠</div>
+          <h3>Ask Alex anything about your trading</h3>
+          <p>Upload your broker CSV to unlock your full analysis. Alex will know every trade, pattern, and behavioral signal in your data.</p>
+          <div class="welcome-chips">
+            <div class="welcome-chip" onclick="askChip(this)">What's my biggest behavioral weakness?</div>
+            <div class="welcome-chip" onclick="askChip(this)">Why did I lose so much on PYPL?</div>
+            <div class="welcome-chip" onclick="askChip(this)">Give me my full behavioral report</div>
+            <div class="welcome-chip" onclick="askChip(this)">What should I change first?</div>
+            <div class="welcome-chip" onclick="askChip(this)">Am I overtrading?</div>
+            <div class="welcome-chip" onclick="askChip(this)">Compare my winning vs losing trades</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /chat-body -->
+
+  <!-- FULL-WIDTH INPUT BAR -->
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="msg-input" placeholder="Ask Alex about your trades, patterns, or strategy…"
+        rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button id="send-btn" onclick="sendMessage()" disabled title="Send (Enter)">➤</button>
+    </div>
+    <div class="input-hint">Enter to send · Shift+Enter for new line</div>
+  </div>
+</div>
 
 </div><!-- /state-wrap -->
 
 <script>
-/* ═══════════════════════════════════════════════════════════════════════════
-   TradeAware — chat.html
-   When deployed on Netlify (tradeaware.pro), /api/* is proxied to Render
-   via netlify.toml → no CORS needed, use relative paths.
-   When opened as file:// locally, fall back to the direct Render URL
-   (install Netlify CLI + run `netlify dev` for a proper local proxy).
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   TradeAware — chat.html v2
+   Alex companion chat · Full analytics sidebar · Feedback buttons
+═══════════════════════════════════════════════════════════════════════ */
 
-// Always call Render directly — CORS is configured to allow Netlify + tradeaware.pro.
-// This is simpler than a proxy and works correctly for file uploads and SSE streaming.
 const API_BASE = 'https://alex-finance.onrender.com';
 
-/* ── State ──────────────────────────────────────────────────────────────── */
+/* ── State ── */
 let _userId    = null;
 let _userEmail = null;
-let _history   = [];   // [{role, content}]
+let _history   = [];
 let _isStreaming = false;
-let _analytics = null; // loaded from localStorage or upload response
+let _analytics  = null;
 let _selectedFile = null;
+let _msgCounter = 0;  // unique IDs for feedback
 
-/* ── Clerk init ─────────────────────────────────────────────────────────── */
+/* ── Clerk init ── */
 window.addEventListener('load', () => {
-  const clerkReady = () => {
+  const init = () => {
+    if (!window.Clerk) return;
     window.Clerk.load().then(() => {
       const u = window.Clerk.user;
       if (u) {
         _userId    = u.id;
         _userEmail = u.primaryEmailAddress?.emailAddress || '';
-        localStorage.setItem('ta_clerk_uid',   _userId);
-        localStorage.setItem('ta_clerk_email', _userEmail);
+        localStorage.setItem('ta_uid',   _userId);
+        localStorage.setItem('ta_email', _userEmail);
       } else {
-        _userId    = localStorage.getItem('ta_clerk_uid') || null;
-        _userEmail = localStorage.getItem('ta_clerk_email') || null;
+        _userId    = localStorage.getItem('ta_uid')   || null;
+        _userEmail = localStorage.getItem('ta_email') || null;
       }
       _afterAuth();
     }).catch(() => {
-      _userId    = localStorage.getItem('ta_clerk_uid') || null;
-      _userEmail = localStorage.getItem('ta_clerk_email') || null;
+      _userId    = localStorage.getItem('ta_uid')   || null;
+      _userEmail = localStorage.getItem('ta_email') || null;
       _afterAuth();
     });
   };
-
-  if (window.Clerk) {
-    clerkReady();
-  } else {
-    document.querySelector('[data-clerk-publishable-key]')
-      ?.addEventListener('load', clerkReady);
-    // Fallback: poll a few times
-    let attempts = 0;
-    const poll = setInterval(() => {
-      if (window.Clerk || ++attempts > 20) {
-        clearInterval(poll);
-        if (window.Clerk) clerkReady();
-        else _afterAuth(); // continue without auth (guest)
-      }
-    }, 250);
-  }
+  if (window.Clerk) { init(); return; }
+  const s = document.querySelector('[data-clerk-publishable-key]');
+  s?.addEventListener('load', init);
+  let n = 0;
+  const t = setInterval(() => { if (window.Clerk || ++n > 24) { clearInterval(t); if (window.Clerk) init(); else _afterAuth(); } }, 250);
 });
 
 function _afterAuth() {
   if (_userId) {
     _showNavUser();
-    // Try to load saved analytics from localStorage
     const saved = localStorage.getItem(`ta_analytics_${_userId}`);
-    if (saved) {
-      try { _analytics = JSON.parse(saved); } catch {}
-    }
-    // If we have analytics, go straight to chat; otherwise go to upload
+    if (saved) { try { _analytics = JSON.parse(saved); } catch {} }
     if (_analytics && (_analytics.win_rate != null || _analytics.total_commissions != null)) {
       showChat();
     } else {
@@ -887,118 +422,65 @@ function _afterAuth() {
   }
 }
 
-/* ── Nav ────────────────────────────────────────────────────────────────── */
+/* ── Nav ── */
 function _showNavUser() {
   document.getElementById('nav-signin-btn').style.display = 'none';
-  if (_userEmail) {
-    const el = document.getElementById('nav-email');
-    el.textContent = _userEmail;
-    el.style.display = 'inline';
-  }
+  const em = document.getElementById('nav-email');
+  if (_userEmail) { em.textContent = _userEmail; em.style.display = 'inline'; }
   document.getElementById('nav-signout-btn').style.display = 'inline-flex';
 }
-
 function _showNavSignIn() {
   document.getElementById('nav-signin-btn').style.display = 'inline-flex';
   document.getElementById('nav-email').style.display = 'none';
   document.getElementById('nav-signout-btn').style.display = 'none';
 }
 
-/* ── Auth actions ───────────────────────────────────────────────────────── */
+/* ── Auth ── */
 function doSignIn() {
-  if (window.Clerk) {
-    // Store intent so index.html can redirect back here after Clerk auth
-    sessionStorage.setItem('ta_post_auth', window.location.href);
-    window.Clerk.openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    });
-  }
+  if (!window.Clerk) return;
+  sessionStorage.setItem('ta_post_auth', window.location.href);
+  window.Clerk.openSignIn({ afterSignInUrl: window.location.href, afterSignUpUrl: window.location.href });
 }
-
 function doSignUp() {
-  if (window.Clerk) {
-    sessionStorage.setItem('ta_post_auth', window.location.href);
-    window.Clerk.openSignUp({
-      afterSignUpUrl: window.location.href,
-    });
-  }
+  if (!window.Clerk) return;
+  sessionStorage.setItem('ta_post_auth', window.location.href);
+  window.Clerk.openSignUp({ afterSignUpUrl: window.location.href });
 }
-
 function doSignOut() {
-  if (window.Clerk) {
-    window.Clerk.signOut().then(() => {
-      _userId = null; _userEmail = null;
-      localStorage.removeItem('ta_clerk_uid');
-      localStorage.removeItem('ta_clerk_email');
-      _history = [];
-      _analytics = null;
-      _showNavSignIn();
-      showAuth();
-    });
-  }
+  window.Clerk?.signOut().then(() => {
+    _userId = null; _userEmail = null; _history = []; _analytics = null;
+    localStorage.removeItem('ta_uid'); localStorage.removeItem('ta_email');
+    _showNavSignIn(); showAuth();
+  });
 }
 
-/* ── State transitions ──────────────────────────────────────────────────── */
+/* ── State transitions ── */
 function _hideAll() {
-  document.getElementById('state-auth').style.display      = 'none';
-  document.getElementById('state-upload').style.display    = 'none';
-  document.getElementById('state-analyzing').style.display = 'none';
-  document.getElementById('state-chat').style.display      = 'none';
+  ['state-auth','state-upload','state-analyzing','state-chat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 }
-
-function showAuth() {
-  _hideAll();
-  document.getElementById('state-auth').style.display = 'flex';
-  document.getElementById('nav-signin-btn').style.display = 'inline-flex';
-}
-
-function showUpload() {
-  _hideAll();
-  document.getElementById('state-upload').style.display = 'flex';
-}
-
-function showAnalyzing() {
-  _hideAll();
-  document.getElementById('state-analyzing').style.display = 'flex';
-}
-
+function showAuth()      { _hideAll(); document.getElementById('state-auth').style.display = 'flex'; document.getElementById('nav-signin-btn').style.display = 'inline-flex'; }
+function showUpload()    { _hideAll(); document.getElementById('state-upload').style.display = 'flex'; }
+function showAnalyzing() { _hideAll(); document.getElementById('state-analyzing').style.display = 'flex'; }
 function showChat() {
   _hideAll();
   document.getElementById('state-chat').style.display = 'flex';
   renderStats();
-  document.getElementById('send-btn').disabled = false;
-
-  // If user already has messages, don't show welcome screen
-  const msgs = document.querySelectorAll('.msg');
-  if (msgs.length === 0) {
-    document.getElementById('welcome-screen').style.display = 'flex';
-  }
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.disabled = false;
 }
 
-/* ── File upload ────────────────────────────────────────────────────────── */
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.add('dragging');
-}
-function handleDragLeave() {
-  document.getElementById('drop-zone').classList.remove('dragging');
-}
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.remove('dragging');
-  const file = e.dataTransfer.files?.[0];
-  if (file) _setFile(file);
-}
-function handleFileSelect(e) {
-  const file = e.target.files?.[0];
-  if (file) _setFile(file);
-}
-function _setFile(file) {
-  _selectedFile = file;
-  const el = document.getElementById('drop-selected');
-  document.getElementById('selected-filename').textContent = file.name;
-  el.style.display = 'flex';
+/* ── File upload ── */
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('dragging'); }
+function handleDragLeave()  { document.getElementById('drop-zone').classList.remove('dragging'); }
+function handleDrop(e)      { e.preventDefault(); document.getElementById('drop-zone').classList.remove('dragging'); const f = e.dataTransfer.files?.[0]; if (f) _setFile(f); }
+function handleFileSelect(e){ const f = e.target.files?.[0]; if (f) _setFile(f); }
+function _setFile(f) {
+  _selectedFile = f;
+  document.getElementById('selected-filename').textContent = f.name;
+  document.getElementById('drop-selected').style.display = 'flex';
   document.getElementById('upload-submit-btn').disabled = false;
   document.getElementById('upload-err').style.display = 'none';
 }
@@ -1006,224 +488,279 @@ function _setFile(file) {
 async function doUpload() {
   if (!_selectedFile || !_userId) return;
   showAnalyzing();
-
   try {
     const broker = document.getElementById('broker-select').value;
 
-    // ── Step 1: preview ──────────────────────────────────────────────────
+    // Preview
     const fd1 = new FormData();
     fd1.append('file', _selectedFile);
     fd1.append('broker', broker);
-
-    const r1 = await fetch(`${API_BASE}/api/broker/import/preview?uid=${encodeURIComponent(_userId)}`, {
-      method: 'POST',
-      body: fd1,
-    });
-
-    if (!r1.ok) {
-      const err = await r1.json().catch(() => ({}));
-      throw new Error(err.detail || err.error || `Server error ${r1.status}`);
-    }
+    const r1 = await fetch(`${API_BASE}/api/broker/import/preview?uid=${encodeURIComponent(_userId)}`, { method:'POST', body:fd1 });
+    if (!r1.ok) { const e = await r1.json().catch(() => ({})); throw new Error(e.detail || e.error || `Server error ${r1.status}`); }
     const preview = await r1.json();
-
     const tradeCount = preview.total_found || preview.count || 0;
-    if (tradeCount === 0) {
-      throw new Error(`No trades found. Format detected: '${preview.broker || 'unknown'}'. Try selecting your broker from the dropdown.`);
-    }
+    if (tradeCount === 0) throw new Error(`No trades found. Format: '${preview.broker || 'unknown'}'. Try selecting your broker manually.`);
 
-    // ── Step 2: confirm (save) ───────────────────────────────────────────
+    // Confirm
     const fd2 = new FormData();
     fd2.append('file', _selectedFile);
     fd2.append('broker', broker);
-
-    const r2 = await fetch(`${API_BASE}/api/broker/import/confirm?uid=${encodeURIComponent(_userId)}`, {
-      method: 'POST',
-      body: fd2,
-    });
-
-    if (!r2.ok) {
-      const err2 = await r2.json().catch(() => ({}));
-      throw new Error(err2.detail || err2.error || `Save error ${r2.status}`);
-    }
+    const r2 = await fetch(`${API_BASE}/api/broker/import/confirm?uid=${encodeURIComponent(_userId)}`, { method:'POST', body:fd2 });
+    if (!r2.ok) { const e = await r2.json().catch(() => ({})); throw new Error(e.detail || e.error || `Save error ${r2.status}`); }
     const confirmed = await r2.json();
 
-    // ── Extract analytics ────────────────────────────────────────────────
-    _analytics = confirmed.analytics || preview.analytics_preview || null;
-    if (_analytics) {
-      localStorage.setItem(`ta_analytics_${_userId}`, JSON.stringify(_analytics));
-    }
+    // Store analytics
+    _analytics = confirmed.analytics || preview.analytics || null;
+    if (_analytics) localStorage.setItem(`ta_analytics_${_userId}`, JSON.stringify(_analytics));
 
-    // ── Go to chat ───────────────────────────────────────────────────────
+    // Show chat with welcome
     _history = [];
-    document.getElementById('messages').innerHTML = '';
-    document.getElementById('welcome-screen').innerHTML = _buildWelcomeAfterUpload(preview, confirmed);
+    const count  = confirmed.total || confirmed.imported || tradeCount;
+    const bname  = _brokerLabel(preview.broker);
+    document.getElementById('messages').innerHTML = `
+      <div class="welcome" id="welcome-screen">
+        <div class="welcome-icon">✅</div>
+        <h3>${count} trades from ${bname} imported</h3>
+        <p>Alex has your full trade history. Ask anything — he'll give specific, honest answers backed by your data.</p>
+        <div class="welcome-chips">
+          <div class="welcome-chip" onclick="askChip(this)">Give me my full behavioral report</div>
+          <div class="welcome-chip" onclick="askChip(this)">What's my biggest pattern costing me money?</div>
+          <div class="welcome-chip" onclick="askChip(this)">Am I a good trader? Be honest.</div>
+          <div class="welcome-chip" onclick="askChip(this)">What should I change first?</div>
+        </div>
+      </div>`;
 
     showChat();
-
-    // Auto-send an intro message
-    const count  = confirmed.total || confirmed.imported || tradeCount;
-    const broker_name = _brokerLabel(preview.broker);
-    _sendAutoIntro(count, broker_name);
+    // Auto-trigger initial analysis
+    setTimeout(() => {
+      document.getElementById('msg-input').value =
+        `I just uploaded ${count} trades from ${bname}. Give me my full behavioral analysis — what are my main patterns, mistakes, and what should I focus on fixing?`;
+      sendMessage();
+    }, 500);
 
   } catch (err) {
-    // Go back to upload and show error
     _hideAll();
     document.getElementById('state-upload').style.display = 'flex';
-    const errEl = document.getElementById('upload-err');
-    errEl.textContent = `⚠ ${err.message}`;
-    errEl.style.display = 'block';
+    const el = document.getElementById('upload-err');
+    el.textContent = `⚠ ${err.message}`;
+    el.style.display = 'block';
   }
 }
 
-function _brokerLabel(code) {
-  const map = {
-    ibkr_activity: 'Interactive Brokers',
-    ibkr:          'Interactive Brokers',
-    t212:          'Trading 212',
-    revolut:       'Revolut',
-    degiro:        'Degiro',
-    generic:       'CSV',
-  };
-  return map[code] || 'your broker';
+function _brokerLabel(c) {
+  return ({ ibkr_activity:'Interactive Brokers', ibkr:'Interactive Brokers', t212:'Trading 212', revolut:'Revolut', degiro:'Degiro' })[c] || 'your broker';
 }
 
-function _buildWelcomeAfterUpload(preview, confirmed) {
-  const count = confirmed.total || confirmed.imported || preview.total_found || 0;
-  return `<div class="welcome" id="welcome-screen">
-    <div class="welcome-icon">✅</div>
-    <h3>${count} trades imported</h3>
-    <p>Alex has analyzed your trading history. Ask anything — he'll give you specific, honest answers backed by your own data.</p>
-    <div class="welcome-chips" id="welcome-chips">
-      <div class="welcome-chip" onclick="askChip(this)">What are my biggest mistakes?</div>
-      <div class="welcome-chip" onclick="askChip(this)">What pattern is costing me the most?</div>
-      <div class="welcome-chip" onclick="askChip(this)">Give me my full behavioral report</div>
-      <div class="welcome-chip" onclick="askChip(this)">How is my risk/reward ratio?</div>
-    </div>
-  </div>`;
-}
-
-/* ── Stats rendering ────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════
+   STATS SIDEBAR — rich behavioral profile
+══════════════════════════════════════════════════════════════════════ */
 function renderStats() {
   const panel = document.getElementById('stats-panel');
+  if (!panel) return;
   const a = _analytics;
 
   if (!a || Object.keys(a).length === 0) {
-    panel.innerHTML = `<div class="no-data-prompt" id="no-data-prompt">
-      <p>Upload your broker statement to see your behavioral profile here.</p>
-      <button class="btn-upload-link" onclick="showUpload()">Upload CSV</button>
-    </div>`;
+    panel.innerHTML = `<div class="no-data" id="no-data-prompt"><p>Upload your broker statement to see your full behavioral profile.</p><button onclick="showUpload()">Upload CSV</button></div>`;
     return;
   }
 
   let html = '';
 
-  // Period
+  // ── Period ──
   if (a.period_start || a.period_end) {
-    const start = a.period_start ? a.period_start.slice(0,10) : '—';
-    const end   = a.period_end   ? a.period_end.slice(0,10)   : '—';
-    html += `<div class="sidebar-period">📅 ${start} → ${end}</div>`;
+    const s = (a.period_start || '').slice(0, 10);
+    const e = (a.period_end   || '').slice(0, 10);
+    html += `<div class="s-period">📅 ${s} → ${e}</div>`;
   }
 
-  // Win Rate + R:R
-  if (a.win_rate != null || a.risk_reward_ratio != null) {
-    html += '<div class="stat-row">';
-    if (a.win_rate != null) {
-      const wr  = (a.win_rate * 100).toFixed(1);
-      const cls = a.win_rate >= 0.50 ? 'green' : (a.win_rate >= 0.35 ? 'gold' : 'red');
-      html += `<div class="stat-block">
-        <div class="stat-label">Win Rate</div>
-        <div class="stat-value ${cls}">${wr}%</div>
-        <div class="stat-sub">${a.win_count || 0}W / ${a.loss_count || 0}L</div>
-      </div>`;
-    }
-    if (a.risk_reward_ratio != null) {
-      const rr  = Number(a.risk_reward_ratio).toFixed(2);
-      const cls = a.risk_reward_ratio >= 2 ? 'green' : (a.risk_reward_ratio >= 1.5 ? 'gold' : 'red');
-      html += `<div class="stat-block">
-        <div class="stat-label">Risk / Reward</div>
-        <div class="stat-value ${cls}">${rr}</div>
-        <div class="stat-sub">Avg win : avg loss</div>
-      </div>`;
-    }
-    html += '</div>';
-  }
+  // ── Performance ──
+  const wr       = a.win_rate != null  ? (a.win_rate * 100).toFixed(1) : null;
+  const wrCls    = a.win_rate >= 0.5   ? 'green' : a.win_rate >= 0.35 ? 'gold' : 'red';
+  const rrVal    = a.risk_reward_ratio != null ? Number(a.risk_reward_ratio).toFixed(2) : null;
+  const rrCls    = a.risk_reward_ratio >= 2    ? 'green' : a.risk_reward_ratio >= 1.5 ? 'gold' : 'red';
+  const totalTrades = (a.win_count || 0) + (a.loss_count || 0);
 
-  // Commission drag
-  if (a.commission_drag_pct != null) {
-    const drag = Number(a.commission_drag_pct).toFixed(2);
-    const cls  = drag > 3 ? 'red' : (drag > 1.5 ? 'gold' : 'green');
-    html += `<div class="stat-block">
-      <div class="stat-label">Commission Drag</div>
-      <div class="stat-value ${cls}">${drag}%</div>
-      <div class="stat-sub">${a.total_commissions != null ? _fmtMoney(a.total_commissions) + ' paid in fees' : 'of portfolio/year'}</div>
+  html += `<div class="s-section">
+    <div class="s-section-title">Performance</div>
+    <div class="s-grid3">
+      ${wr ? `<div class="s-metric"><div class="val ${wrCls}">${wr}%</div><div class="lbl">Win Rate</div><div class="sub">${a.win_count||0}W · ${a.loss_count||0}L</div></div>` : ''}
+      ${rrVal ? `<div class="s-metric"><div class="val ${rrCls}">${rrVal}x</div><div class="lbl">Risk/Reward</div><div class="sub">win÷loss</div></div>` : ''}
+      ${totalTrades ? `<div class="s-metric"><div class="val white">${totalTrades}</div><div class="lbl">Trades</div><div class="sub">closed</div></div>` : ''}
+    </div>
+  </div>`;
+
+  // ── Avg win / loss ──
+  if (a.avg_win != null || a.avg_loss != null) {
+    html += `<div class="s-section">
+      <div class="s-section-title">Avg per trade</div>
+      <div class="s-grid2">
+        ${a.avg_win  != null ? `<div class="s-metric"><div class="val green">+${_fmt(a.avg_win)}</div><div class="lbl">Avg Win</div></div>` : ''}
+        ${a.avg_loss != null ? `<div class="s-metric"><div class="val red">${_fmt(a.avg_loss)}</div><div class="lbl">Avg Loss</div></div>` : ''}
+        ${a.max_win  != null ? `<div class="s-metric"><div class="val green">+${_fmt(a.max_win)}</div><div class="lbl">Best Trade</div></div>` : ''}
+        ${a.max_loss != null ? `<div class="s-metric"><div class="val red">${_fmt(a.max_loss)}</div><div class="lbl">Worst Trade</div></div>` : ''}
+      </div>
     </div>`;
   }
 
-  // NAV
+  // ── Portfolio ──
   if (a.ending_nav != null) {
-    const diff = a.ending_nav - (a.starting_nav || a.ending_nav);
-    const sign = diff >= 0 ? '+' : '';
-    const cls  = diff >= 0 ? 'green' : 'red';
-    html += `<div class="stat-block">
-      <div class="stat-label">Portfolio NAV</div>
-      <div class="stat-value">${_fmtMoney(a.ending_nav)}</div>
-      <div class="stat-sub" style="color:var(--${diff >= 0 ? 'green' : 'red'})">${sign}${_fmtMoney(diff)} this period</div>
+    const diff    = (a.ending_nav || 0) - (a.starting_nav || a.ending_nav || 0);
+    const diffCls = diff >= 0 ? 'green' : 'red';
+    const sign    = diff >= 0 ? '+' : '';
+    html += `<div class="s-section">
+      <div class="s-section-title">Portfolio</div>
+      <div class="s-grid2">
+        <div class="s-metric"><div class="val white">${_fmt(a.ending_nav)}</div><div class="lbl">NAV</div></div>
+        <div class="s-metric"><div class="val ${diffCls}">${sign}${_fmt(diff)}</div><div class="lbl">Period P&L</div></div>
+        ${a.trading_pnl != null ? `<div class="s-metric"><div class="val ${a.trading_pnl>=0?'green':'red'}">${a.trading_pnl>=0?'+':''}${_fmt(a.trading_pnl)}</div><div class="lbl">Trading P&L</div></div>` : ''}
+        ${a.commission_drag_pct != null ? `<div class="s-metric"><div class="val ${a.commission_drag_pct>2?'red':'gold'}">${Number(a.commission_drag_pct).toFixed(2)}%</div><div class="lbl">Comm Drag</div></div>` : ''}
+      </div>
     </div>`;
   }
 
-  // Top losers
+  // ── Costs ──
+  if (a.total_commissions != null || a.total_interest != null) {
+    html += `<div class="s-section">
+      <div class="s-section-title">Costs</div>
+      <div class="s-grid2">
+        ${a.total_commissions != null ? `<div class="s-metric"><div class="val red">${_fmt(a.total_commissions)}</div><div class="lbl">Commissions</div></div>` : ''}
+        ${a.total_interest    != null ? `<div class="s-metric"><div class="val red">${_fmt(a.total_interest)}</div><div class="lbl">Margin Interest</div></div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // ── Behavioral signals ──
+  const signals = _computeBehavioralSignals(a);
+  if (signals.length) {
+    html += `<div class="s-section"><div class="s-section-title">Behavioral Signals</div>`;
+    signals.forEach(s => {
+      html += `<div class="b-chip ${s.type}">
+        <div class="b-chip-icon">${s.icon}</div>
+        <div><div class="b-chip-title">${s.title}</div><div class="b-chip-desc">${s.desc}</div></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Top losers ──
   if (a.top_losers?.length) {
-    html += `<div class="insight-chip">
-      <div class="insight-chip-title">⚠️ Biggest Losers</div>
-      <div class="insight-chip-desc">${a.top_losers.slice(0,3).map(l => `${l.symbol} ${_fmtMoney(l.pnl)}`).join(' · ')}</div>
-    </div>`;
+    html += `<div class="s-section"><div class="s-section-title">Top Losers</div>`;
+    a.top_losers.slice(0, 5).forEach(l => {
+      html += `<div class="t-row"><span class="sym">${l.symbol}</span><span class="pnl red">${_fmt(l.pnl)}</span></div>`;
+    });
+    html += `</div>`;
   }
 
-  // Top winners
+  // ── Top winners ──
   if (a.top_winners?.length) {
-    html += `<div class="insight-chip" style="background:var(--green-bg); border-color:rgba(52,211,153,0.2)">
-      <div class="insight-chip-title" style="color:var(--green)">✅ Best Performers</div>
-      <div class="insight-chip-desc">${a.top_winners.slice(0,3).map(w => `${w.symbol} ${_fmtMoney(w.pnl)}`).join(' · ')}</div>
-    </div>`;
+    html += `<div class="s-section"><div class="s-section-title">Top Winners</div>`;
+    a.top_winners.slice(0, 5).forEach(w => {
+      html += `<div class="t-row"><span class="sym">${w.symbol}</span><span class="pnl green">+${_fmt(w.pnl)}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── All symbols ──
+  const pnlMap = a.pnl_by_symbol;
+  if (pnlMap && Object.keys(pnlMap).length > 0) {
+    const sorted = Object.entries(pnlMap).sort(([,a],[,b]) => b - a);
+    html += `<div class="s-section"><div class="s-section-title">All Positions (${sorted.length})</div>`;
+    sorted.forEach(([sym, pnl]) => {
+      const cls  = pnl >= 0 ? 'green' : 'red';
+      const sign = pnl >= 0 ? '+' : '';
+      html += `<div class="t-row"><span class="sym">${sym}</span><span class="pnl ${cls}">${sign}${_fmt(pnl)}</span></div>`;
+    });
+    html += `</div>`;
   }
 
   panel.innerHTML = html;
 }
 
-function _fmtMoney(val) {
-  if (val == null) return '—';
-  const n = Number(val);
-  const abs = Math.abs(n);
-  const sign = n < 0 ? '-' : (n > 0 ? '+' : '');
-  if (abs >= 1000) return sign + '$' + (abs / 1000).toFixed(1) + 'k';
-  return sign + '$' + abs.toFixed(0);
+function _computeBehavioralSignals(a) {
+  const signals = [];
+
+  // Win rate analysis
+  if (a.win_rate != null) {
+    if (a.win_rate < 0.30) {
+      signals.push({ type:'warn', icon:'⚠️', title:'Very Low Win Rate', desc:`Only ${(a.win_rate*100).toFixed(0)}% of trades close profitably. Even good R:R struggles to compensate below 30%.` });
+    } else if (a.win_rate >= 0.55) {
+      signals.push({ type:'good', icon:'✅', title:'Solid Win Rate', desc:`${(a.win_rate*100).toFixed(0)}% win rate — above the 50% threshold that indicates trade selection skill.` });
+    }
+  }
+
+  // Loss aversion / cutting winners
+  if (a.avg_win != null && a.avg_loss != null) {
+    const absLoss = Math.abs(a.avg_loss);
+    const absWin  = Math.abs(a.avg_win);
+    if (absLoss > absWin * 1.2) {
+      signals.push({ type:'warn', icon:'✂️', title:'Cutting Winners Early', desc:`Avg win (${_fmt(a.avg_win)}) is smaller than avg loss (${_fmt(a.avg_loss)}). You close winners too soon and hold losers too long.` });
+    } else if (absWin > absLoss * 1.8) {
+      signals.push({ type:'good', icon:'💪', title:'Letting Winners Run', desc:`Avg win ${_fmt(a.avg_win)} is ${(absWin/absLoss).toFixed(1)}× your avg loss. Good asymmetry.` });
+    }
+  }
+
+  // Commission drag
+  if (a.commission_drag_pct != null) {
+    if (a.commission_drag_pct > 3) {
+      signals.push({ type:'warn', icon:'💸', title:'High Commission Drag', desc:`${Number(a.commission_drag_pct).toFixed(1)}% of NAV going to commissions. Overtrading or small positions — consider larger, fewer trades.` });
+    } else if (a.commission_drag_pct > 1.5) {
+      signals.push({ type:'info', icon:'📊', title:'Moderate Commission Cost', desc:`${Number(a.commission_drag_pct).toFixed(1)}% commission drag. Manageable but worth tracking as frequency increases.` });
+    }
+  }
+
+  // R:R assessment
+  if (a.risk_reward_ratio != null) {
+    if (a.risk_reward_ratio < 1.0) {
+      signals.push({ type:'warn', icon:'📉', title:'Negative Risk/Reward', desc:`R:R below 1.0 means you need >50% win rate to break even. This is structurally difficult to sustain.` });
+    } else if (a.risk_reward_ratio >= 2.0) {
+      signals.push({ type:'good', icon:'⚖️', title:'Strong Risk/Reward', desc:`${Number(a.risk_reward_ratio).toFixed(2)}x R:R means even a 35% win rate is profitable long-term.` });
+    }
+  }
+
+  // Biggest single loss concentration
+  if (a.max_loss != null && a.trading_pnl != null) {
+    const loss = Math.abs(a.max_loss);
+    if (a.total_commissions != null && loss > Math.abs(a.trading_pnl) * 0.5) {
+      signals.push({ type:'warn', icon:'🎯', title:'Concentration Risk', desc:`Single largest loss (${_fmt(a.max_loss)}) is over 50% of period P&L. One bad position is dominating outcomes.` });
+    }
+  }
+
+  return signals;
 }
 
-/* ── Chat ───────────────────────────────────────────────────────────────── */
+function _fmt(val) {
+  if (val == null) return '—';
+  const n   = Number(val);
+  const abs = Math.abs(n);
+  const sgn = n < 0 ? '-' : '';
+  if (abs >= 1000) return sgn + '$' + (abs / 1000).toFixed(1) + 'k';
+  return sgn + '$' + abs.toFixed(0);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CHAT
+══════════════════════════════════════════════════════════════════════ */
 function askChip(el) {
-  const text = el.textContent;
-  document.getElementById('msg-input').value = text;
+  const ws = document.getElementById('welcome-screen');
+  if (ws) ws.style.display = 'none';
+  document.getElementById('msg-input').value = el.textContent;
   sendMessage();
 }
 
 function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
 
 function autoResize(el) {
   el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
 async function sendMessage() {
   const input = document.getElementById('msg-input');
-  const text  = input.value.trim();
+  const text  = (input.value || '').trim();
   if (!text || _isStreaming) return;
 
-  // Hide welcome screen
   const ws = document.getElementById('welcome-screen');
   if (ws) ws.style.display = 'none';
 
@@ -1231,31 +768,40 @@ async function sendMessage() {
   input.style.height = 'auto';
   document.getElementById('send-btn').disabled = true;
 
-  // Add user message
-  _history.push({ role: 'user', content: text });
+  _history.push({ role:'user', content:text });
   _appendUserMsg(text);
-
   _isStreaming = true;
 
-  // Add empty assistant bubble
-  const bubble = _appendAssistantMsg('');
-  const msgEl  = bubble.closest('.msg');
+  const msgId  = ++_msgCounter;
+  const bubble = _appendAssistantMsg('', msgId);
 
-  // Add grounding indicator
+  // Grounding indicator
   const gnd = document.createElement('div');
-  gnd.className = 'msg-grounding';
-  gnd.id = 'grounding-indicator';
+  gnd.className = 'msg-grounding'; gnd.id = 'gnd-' + msgId;
   gnd.innerHTML = '<div class="gnd-spinner"></div><span>Thinking…</span>';
-  msgEl.parentNode.insertBefore(gnd, msgEl);
-  _scrollToBottom();
+  bubble.closest('.msg')?.before(gnd);
+  _scrollBottom();
 
   try {
+    // Build profile payload with analytics for companion context
+    const profilePayload = _analytics ? {
+      ibkr_analytics_summary: {
+        win_rate:           _analytics.win_rate,
+        risk_reward_ratio:  _analytics.risk_reward_ratio,
+        total_trades:       (_analytics.win_count||0) + (_analytics.loss_count||0),
+        commission_drag_pct: _analytics.commission_drag_pct,
+        top_losers:         _analytics.top_losers,
+        top_winners:        _analytics.top_winners,
+      }
+    } : {};
+
     const resp = await fetch(`${API_BASE}/api/ask-alex/chat?uid=${encodeURIComponent(_userId || '')}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages:       _history.slice(-20),
         user_id:        _userId || undefined,
+        profile:        profilePayload,
         companion_mode: true,
       }),
     });
@@ -1264,130 +810,138 @@ async function sendMessage() {
 
     const reader  = resp.body.getReader();
     const decoder = new TextDecoder();
-    let buffer   = '';
-    let fullText = '';
-
-    // Remove grounding indicator once first token arrives
-    let groundingRemoved = false;
+    let buf = '', full = '', gndGone = false;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
 
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
-        let evt;
-        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+        let evt; try { evt = JSON.parse(line.slice(6)); } catch { continue; }
 
         if (evt.type === 'token' && evt.text) {
-          if (!groundingRemoved) {
-            document.getElementById('grounding-indicator')?.remove();
-            groundingRemoved = true;
-          }
-          fullText += evt.text;
-          bubble.innerHTML = _renderMarkdown(fullText) + '<span class="cursor"></span>';
-          _scrollToBottom();
+          if (!gndGone) { document.getElementById('gnd-' + msgId)?.remove(); gndGone = true; }
+          full += evt.text;
+          bubble.innerHTML = _md(full) + '<span class="cursor"></span>';
+          _scrollBottom();
         } else if (evt.type === 'grounding_start') {
-          const g = document.getElementById('grounding-indicator');
-          if (g) g.querySelector('span').textContent = 'Researching…';
+          const g = document.getElementById('gnd-' + msgId);
+          if (g) g.querySelector('span').textContent = 'Researching market data…';
         } else if (evt.type === 'done') {
-          bubble.innerHTML = _renderMarkdown(fullText);
-          _scrollToBottom();
+          bubble.innerHTML = _md(full);
         } else if (evt.type === 'error') {
-          if (!groundingRemoved) document.getElementById('grounding-indicator')?.remove();
-          bubble.innerHTML = `<em style="color:var(--red)">${evt.message || 'An error occurred. Please try again.'}</em>`;
-          _scrollToBottom();
+          if (!gndGone) { document.getElementById('gnd-' + msgId)?.remove(); gndGone = true; }
+          bubble.innerHTML = `<em style="color:var(--red)">${evt.message || 'Error — please try again.'}</em>`;
         }
       }
     }
 
-    // Ensure cursor removed
-    bubble.innerHTML = _renderMarkdown(fullText || bubble.textContent);
-    document.getElementById('grounding-indicator')?.remove();
-    if (fullText) _history.push({ role: 'assistant', content: fullText });
+    document.getElementById('gnd-' + msgId)?.remove();
+    bubble.innerHTML = _md(full || bubble.textContent || '…');
+    if (full) _history.push({ role:'assistant', content: full });
+    _showFeedbackRow(bubble.closest('.msg-content'), msgId, full);
 
   } catch (err) {
-    document.getElementById('grounding-indicator')?.remove();
+    document.getElementById('gnd-' + msgId)?.remove();
     bubble.innerHTML = `<em style="color:var(--red)">Connection error. Please try again.</em>`;
   }
 
   _isStreaming = false;
   document.getElementById('send-btn').disabled = false;
-  _scrollToBottom();
-}
-
-function _sendAutoIntro(count, brokerName) {
-  // Simulate user asking for initial analysis
-  const input = document.getElementById('msg-input');
-  input.value = `I just uploaded ${count} trades from ${brokerName}. Give me a full behavioral analysis — what are my biggest patterns and mistakes?`;
-  setTimeout(() => sendMessage(), 600);
+  _scrollBottom();
 }
 
 function _appendUserMsg(text) {
   const msgs = document.getElementById('messages');
   const el   = document.createElement('div');
   el.className = 'msg user';
-  el.innerHTML = `
-    <div class="msg-avatar user-av">U</div>
-    <div class="msg-bubble">${_escHtml(text)}</div>
-  `;
+  el.innerHTML = `<div class="msg-av user-av">U</div><div class="msg-content"><div class="msg-bubble">${_esc(text)}</div></div>`;
   msgs.appendChild(el);
-  _scrollToBottom();
+  _scrollBottom();
 }
 
-function _appendAssistantMsg(text) {
+function _appendAssistantMsg(text, id) {
   const msgs = document.getElementById('messages');
   const el   = document.createElement('div');
-  el.className = 'msg alex';
-  el.innerHTML = `
-    <div class="msg-avatar alex-av">A</div>
-    <div class="msg-bubble">${text || '<span class="cursor"></span>'}</div>
-  `;
+  el.className = 'msg';
+  el.innerHTML = `<div class="msg-av alex">A</div><div class="msg-content" id="mc-${id}"><div class="msg-bubble" id="mb-${id}">${text || '<span class="cursor"></span>'}</div></div>`;
   msgs.appendChild(el);
-  _scrollToBottom();
-  return el.querySelector('.msg-bubble');
+  _scrollBottom();
+  return document.getElementById('mb-' + id);
 }
 
-function _escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+function _showFeedbackRow(container, id, text) {
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'fb-row';
+  row.id = 'fb-' + id;
+  row.innerHTML = `
+    <button class="fb-btn pos" id="fup-${id}" onclick="_sendFeedback(1,${id},'${_detectTopic(text)}')" title="Helpful">👍</button>
+    <button class="fb-btn neg" id="fdn-${id}" onclick="_sendFeedback(-1,${id},'${_detectTopic(text)}')" title="Not helpful">👎</button>
+    <span class="fb-label">Was this helpful?</span>`;
+  container.appendChild(row);
 }
 
-function _renderMarkdown(text) {
-  // Very lightweight markdown: bold, italic, code, newlines
+async function _sendFeedback(rating, id, topic) {
+  const row = document.getElementById('fb-' + id);
+  if (!row || row.dataset.rated) return;
+  row.dataset.rated = '1';
+  const upBtn = document.getElementById('fup-' + id);
+  const dnBtn = document.getElementById('fdn-' + id);
+  if (upBtn) { upBtn.classList.toggle('active', rating === 1); upBtn.classList.toggle('inactive', rating === -1); upBtn.disabled = true; }
+  if (dnBtn) { dnBtn.classList.toggle('active', rating === -1); dnBtn.classList.toggle('inactive', rating === 1); dnBtn.disabled = true; }
+  const label = row.querySelector('.fb-label');
+  if (label) label.textContent = rating === 1 ? 'Thanks! 🙏' : 'Got it — will improve';
+  const bubble = document.getElementById('mb-' + id);
+  const preview = (bubble?.textContent || '').trim().slice(0, 100);
+  try {
+    await fetch(`${API_BASE}/api/feedback?uid=${encodeURIComponent(_userId || '')}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ rating, preview, topic }),
+    });
+  } catch {}
+}
+
+function _detectTopic(text) {
+  const t = (text || '').toLowerCase();
+  if (/\b(cpi|inflation|gdp|fed|rate|macro|yield|bond|recession)\b/.test(t)) return 'macro';
+  if (/\b(stock|ticker|share|earnings|eps|pe ratio|revenue|analyst)\b/.test(t)) return 'stock';
+  if (/\b(portfolio|allocation|diversif|rebalanc|weight|position|exposure)\b/.test(t)) return 'portfolio';
+  if (/\b(fomo|panic|bias|emotion|fear|greed|disciplin|behavior|psychology|loss.aversion|averaging)\b/.test(t)) return 'behavioral';
+  return 'general';
+}
+
+function _esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+function _md(text) {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
-    .replace(/`(.+?)`/g,       '<code>$1</code>')
-    .replace(/\n\n+/g, '</p><p>')
-    .replace(/\n/g, '<br>')
-    .replace(/^/, '<p>')
-    .replace(/$/, '</p>');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')
+    .replace(/^/,'<p>').replace(/$/,'</p>');
 }
 
-function _scrollToBottom() {
-  const msgs = document.getElementById('messages');
-  msgs.scrollTop = msgs.scrollHeight;
+function _scrollBottom() {
+  const m = document.getElementById('messages');
+  if (m) m.scrollTop = m.scrollHeight;
 }
 
-/* ── Textarea auto-resize + enable send on input ─────────────────────────── */
+/* ── Input enable on type ── */
 document.addEventListener('DOMContentLoaded', () => {
-  const input   = document.getElementById('msg-input');
-  const sendBtn = document.getElementById('send-btn');
-  if (input && sendBtn) {
+  const input = document.getElementById('msg-input');
+  const btn   = document.getElementById('send-btn');
+  if (input && btn) {
     input.addEventListener('input', () => {
-      if (!_isStreaming) {
-        sendBtn.disabled = input.value.trim().length === 0;
-      }
+      if (!_isStreaming) btn.disabled = input.value.trim().length === 0;
     });
   }
 });
 </script>
-
 </body>
 </html>
