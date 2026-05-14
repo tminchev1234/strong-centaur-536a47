@@ -1,0 +1,10 @@
+# netlify.toml — TradeAware
+# Optional proxy: keeps the Render URL off the client and avoids CORS entirely.
+# Currently chat.html calls Render directly (CORS is configured there).
+# Uncomment the redirect block to re-enable the proxy if needed.
+
+# [[redirects]]
+#   from   = "/api/*"
+#   to     = "https://alex-finance.onrender.com/api/:splat"
+#   status = 200
+#   force  = true
